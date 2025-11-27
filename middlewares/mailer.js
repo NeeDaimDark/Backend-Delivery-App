@@ -6,22 +6,24 @@ dotenv.config();
 // Email configuration
 const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-    port: process.env.EMAIL_PORT || 587,
+    port: parseInt(process.env.EMAIL_PORT) || 587,
     secure: false, // true for 465, false for other ports
     auth: {
-        user: process.env.EMAIL_USER ,
-        pass: process.env.EMAIL_PASSWORD ,
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD,
     }
 });
 
-// Verify transporter configuration
-transporter.verify((error, success) => {
-    if (error) {
-        console.log('Email transporter error:', error);
-    } else {
-        console.log('Email server is ready to send messages');
-    }
-});
+// Verify transporter configuration (optional - won't block startup)
+if (process.env.NODE_ENV === 'production') {
+    transporter.verify((error, success) => {
+        if (error) {
+            console.log('⚠️ Email configuration warning:', error.message);
+        } else {
+            console.log('✅ Email server is ready to send messages');
+        }
+    });
+}
 
 // Send verification email
 export async function sendVerificationEmail(email, name, token) {
