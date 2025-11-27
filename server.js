@@ -15,8 +15,9 @@ dotenv.config();
 
 const app = express();
 
-const hostname = process.env.DOCKERSERVERURL || '127.0.0.1';
-const port = process.env.SERVERPORT || 9090;
+// Use 0.0.0.0 for production (Render, Railway, etc.) or localhost for development
+const hostname = process.env.NODE_ENV === 'production' ? '0.0.0.0' : (process.env.DOCKERSERVERURL || '127.0.0.1');
+const port = process.env.PORT || process.env.SERVERPORT || 9090;
 
 // Info on req : GET /route ms -25
 app.use(morgan("tiny"));
