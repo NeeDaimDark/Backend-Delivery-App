@@ -76,6 +76,7 @@ app.get('/', (req, res) => {
         success: true,
         message: 'Welcome to Food Delivery API',
         version: '1.0.0',
+        environment: process.env.NODE_ENV || 'development',
         endpoints: {
             auth: '/api/auth',
             customers: '/api/customers',
