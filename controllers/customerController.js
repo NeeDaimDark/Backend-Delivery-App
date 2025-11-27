@@ -1,4 +1,4 @@
-import Customer, { validateCustomerUpdate, validateAddress } from '../models/Customer.js';
+import Customer, { validateCustomerUpdate, validateAddress, validateAddressUpdate } from '../models/Customer.js';
 import bcrypt from 'bcrypt';
 
 // ==================== GET ALL CUSTOMERS ====================
@@ -477,12 +477,12 @@ export async function updateAddress(req, res) {
     try {
         const { _id } = req.user;
         const { addressId } = req.params;
-        const { error } = validateAddress(req.body);
+        const { error } = validateAddressUpdate(req.body);
 
         if (error) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 success: false,
-                message: error.details[0].message 
+                message: error.details[0].message
             });
         }
 

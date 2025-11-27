@@ -207,7 +207,7 @@ export function validateCustomerUpdate(data) {
     return schema.validate(data);
 }
 
-// Address Validation
+// Address Validation (for creating new address)
 export function validateAddress(address) {
     const schema = Joi.object({
         type: Joi.string().valid('home', 'office', 'apartment', 'other').required(),
@@ -219,6 +219,24 @@ export function validateAddress(address) {
         city: Joi.string().required(),
         latitude: Joi.number().min(-90).max(90).required(),
         longitude: Joi.number().min(-180).max(180).required(),
+        isDefault: Joi.boolean().optional()
+    });
+
+    return schema.validate(address);
+}
+
+// Address Update Validation (all fields optional for partial updates)
+export function validateAddressUpdate(address) {
+    const schema = Joi.object({
+        type: Joi.string().valid('home', 'office', 'apartment', 'other').optional(),
+        label: Joi.string().optional(),
+        street: Joi.string().optional(),
+        building: Joi.string().optional().allow(''),
+        floor: Joi.string().optional().allow(''),
+        apartment: Joi.string().optional().allow(''),
+        city: Joi.string().optional(),
+        latitude: Joi.number().min(-90).max(90).optional(),
+        longitude: Joi.number().min(-180).max(180).optional(),
         isDefault: Joi.boolean().optional()
     });
 

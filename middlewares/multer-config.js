@@ -1,5 +1,5 @@
 import multer, { diskStorage } from "multer";
-import { join, dirname } from "path";
+import { join, dirname, extname } from "path";
 import { fileURLToPath } from "url";
 
 export default multer({
@@ -10,7 +10,18 @@ export default multer({
       callback(null, join(__dirname, "..", imgPath));  // Ensure the correct path is used
     },
     filename: (req, file, callback) => {
-      callback(null, file.originalname);
+      // Get file extension
+      const ext = extname(file.originalname).toLowerCase();
+
+      // Get user name from request (sanitize it for filename)
+      const userName = req.user?.name || 'user';
+      const sanitizedName = userName.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+
+      // Create unique filename: username_timestamp.ext
+      const timestamp = Date.now();
+      const filename = `${sanitizedName}_${timestamp}${ext}`;
+
+      callback(null, filename);
     },
   }),
 

@@ -178,13 +178,13 @@ export async function sendConfirmationEmail(email, activationCode) {
         const transporter = nodemailer.createTransport({
             service: "Gmail",
             auth: {
-                user: process.env.EMAIL_USER || "medaminekoubaa0@gmail.com",
-                pass: process.env.EMAIL_PASSWORD || "Sarra2007**",
+                user: process.env.EMAIL_USER ,
+                pass: process.env.EMAIL_PASSWORD ,
             },
         });
 
         await transporter.sendMail({
-            from: process.env.EMAIL_USER || "medaminekoubaa0@gmail.com",
+            from: process.env.EMAIL_USER ,
             to: email,
             subject: "Please confirm your account",
             text: "Email Confirmation",

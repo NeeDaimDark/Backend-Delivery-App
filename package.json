@@ -1,5 +1,5 @@
 {
-  "name": "HAVENSERVER",
+  "name": "Backend_Delivery_app",
   "version": "1.0.0",
   "description": "server for Haven",
   "main": "server.js",
