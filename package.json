@@ -4,6 +4,7 @@
   "description": "server for Haven",
   "main": "server.js",
   "dependencies": {
+    "@getbrevo/brevo": "^3.0.1",
     "@nfteyez/sol-rayz": "^0.10.2",
     "@solana/spl-token": "0.2.0",
     "@solana/web3.js": "1.35.1",
