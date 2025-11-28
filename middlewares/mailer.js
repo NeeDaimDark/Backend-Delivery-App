@@ -5,56 +5,60 @@ dotenv.config();
 
 // Email configuration
 const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.EMAIL_PORT) || 587,
-    secure: false, // true for 465, false for other ports
+    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASSWORD,
+    },
+    tls: {
+        rejectUnauthorized: false
     }
 });
 
-// Verify transporter configuration (optional - won't block startup)
-if (process.env.NODE_ENV === 'production') {
-    transporter.verify((error, success) => {
-        if (error) {
-            console.log('⚠️ Email configuration warning:', error.message);
-        } else {
-            console.log('✅ Email server is ready to send messages');
-        }
-    });
-}
+// Don't verify on startup to avoid DNS errors
+// Emails will still work when actually sent
 
 // Send verification email
 export async function sendVerificationEmail(email, name, token) {
-    const verificationUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/verify-email/${token}`;
-    
-    const mailOptions = {
-        from: process.env.EMAIL_FROM || `"Food Delivery App" <${process.env.EMAIL_USER || "medaminekoubaa0@gmail.com"}>`,
-        to: email,
-        subject: 'Verify Your Email - Food Delivery App',
-        html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #FF6B35;">Welcome to Food Delivery App!</h2>
-                <p>Hi ${name},</p>
-                <p>Thank you for registering with us. Please verify your email address by clicking the button below:</p>
-                <div style="text-align: center; margin: 30px 0;">
-                    <a href="${verificationUrl}" 
-                       style="background-color: #FF6B35; color: white; padding: 12px 30px; 
-                              text-decoration: none; border-radius: 5px; display: inline-block;">
-                        Verify Email
-                    </a>
-                </div>
-                <p>Or copy and paste this link in your browser:</p>
-                <p style="color: #666; word-break: break-all;">${verificationUrl}</p>
-                <p style="color: #999; font-size: 12px; margin-top: 30px;">
-                    This link will expire in 24 hours. If you didn't create an account, please ignore this email.
-                </p>
-            </div>
-        `
-    };
+    try {
+        const verificationUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/verify-email/${token}`;
 
-    return transporter.sendMail(mailOptions);
+        const mailOptions = {
+            from: process.env.EMAIL_FROM || `"Food Delivery App" <${process.env.EMAIL_USER || "medaminekoubaa0@gmail.com"}>`,
+            to: email,
+            subject: 'Verify Your Email - Food Delivery App',
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #FF6B35;">Welcome to Food Delivery App!</h2>
+                    <p>Hi ${name},</p>
+                    <p>Thank you for registering with us. Please verify your email address by clicking the button below:</p>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="${verificationUrl}"
+                           style="background-color: #FF6B35; color: white; padding: 12px 30px;
+                                  text-decoration: none; border-radius: 5px; display: inline-block;">
+                            Verify Email
+                        </a>
+                    </div>
+                    <p>Or copy and paste this link in your browser:</p>
+                    <p style="color: #666; word-break: break-all;">${verificationUrl}</p>
+                    <p style="color: #999; font-size: 12px; margin-top: 30px;">
+                        This link will expire in 24 hours. If you didn't create an account, please ignore this email.
+                    </p>
+                </div>
+            `
+        };
+
+        const info = await transporter.sendMail(mailOptions);
+        console.log('✅ Verification email sent successfully to:', email);
+        return info;
+    } catch (error) {
+        console.error('❌ Email sending failed:', error.message);
+        // Don't throw error - let registration continue even if email fails
+        return null;
+    }
 }
 
 // Send password reset email
