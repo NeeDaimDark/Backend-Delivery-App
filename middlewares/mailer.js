@@ -3,13 +3,18 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-// Email configuration - Simple Gmail setup
+// Email configuration - Gmail with explicit settings and longer timeout
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // use SSL
     auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
-    }
+        pass: process.env.EMAIL_PASSWORD?.replace(/\s/g, ''), // Remove any spaces
+    },
+    connectionTimeout: 10000, // 10 seconds
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
 });
 
 // Don't verify on startup to avoid DNS errors
