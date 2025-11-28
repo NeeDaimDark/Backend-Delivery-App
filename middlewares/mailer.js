@@ -3,69 +3,66 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-// Email configuration - Gmail with explicit settings and longer timeout
+// Email configuration
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // use SSL
+    host:  'smtp.gmail.com',
+    port: parseInt(process.env.EMAIL_PORT) || 587,
+    secure: false, // true for 465, false for other ports
     auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD?.replace(/\s/g, ''), // Remove any spaces
-    },
-    connectionTimeout: 10000, // 10 seconds
-    greetingTimeout: 10000,
-    socketTimeout: 10000,
+        pass: process.env.EMAIL_PASSWORD,
+    }
 });
 
-// Don't verify on startup to avoid DNS errors
-// Emails will still work when actually sent
+// Verify transporter configuration (optional - won't block startup)
+if (process.env.NODE_ENV ) {
+    transporter.verify((error, success) => {
+        if (error) {
+            console.log('⚠️ Email configuration warning:', error.message);
+        } else {
+            console.log('✅ Email server is ready to send messages');
+        }
+    });
+}
 
 // Send verification email
 export async function sendVerificationEmail(email, name, token) {
-    try {
-        const verificationUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/verify-email/${token}`;
-
-        const mailOptions = {
-            from: process.env.EMAIL_FROM || `"Food Delivery App" <${process.env.EMAIL_USER || "medaminekoubaa0@gmail.com"}>`,
-            to: email,
-            subject: 'Verify Your Email - Food Delivery App',
-            html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <h2 style="color: #FF6B35;">Welcome to Food Delivery App!</h2>
-                    <p>Hi ${name},</p>
-                    <p>Thank you for registering with us. Please verify your email address by clicking the button below:</p>
-                    <div style="text-align: center; margin: 30px 0;">
-                        <a href="${verificationUrl}"
-                           style="background-color: #FF6B35; color: white; padding: 12px 30px;
-                                  text-decoration: none; border-radius: 5px; display: inline-block;">
-                            Verify Email
-                        </a>
-                    </div>
-                    <p>Or copy and paste this link in your browser:</p>
-                    <p style="color: #666; word-break: break-all;">${verificationUrl}</p>
-                    <p style="color: #999; font-size: 12px; margin-top: 30px;">
-                        This link will expire in 24 hours. If you didn't create an account, please ignore this email.
-                    </p>
+    const verificationUrl = `${process.env.CLIENT_URL}/verify-email/${token}`;
+    
+    const mailOptions = {
+        from: process.env.EMAIL_FROM ,
+        to: email,
+        subject: 'Verify Your Email - Food Delivery App',
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #FF6B35;">Welcome to Food Delivery App!</h2>
+                <p>Hi ${name},</p>
+                <p>Thank you for registering with us. Please verify your email address by clicking the button below:</p>
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="${verificationUrl}" 
+                       style="background-color: #FF6B35; color: white; padding: 12px 30px; 
+                              text-decoration: none; border-radius: 5px; display: inline-block;">
+                        Verify Email
+                    </a>
                 </div>
-            `
-        };
+                <p>Or copy and paste this link in your browser:</p>
+                <p style="color: #666; word-break: break-all;">${verificationUrl}</p>
+                <p style="color: #999; font-size: 12px; margin-top: 30px;">
+                    This link will expire in 24 hours. If you didn't create an account, please ignore this email.
+                </p>
+            </div>
+        `
+    };
 
-        const info = await transporter.sendMail(mailOptions);
-        console.log('✅ Verification email sent successfully to:', email);
-        return info;
-    } catch (error) {
-        console.error('❌ Email sending failed:', error.message);
-        // Don't throw error - let registration continue even if email fails
-        return null;
-    }
+    return transporter.sendMail(mailOptions);
 }
 
 // Send password reset email
 export async function sendPasswordResetEmail(email, name, token) {
-    const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/reset-password/${token}`;
+    const resetUrl = `${process.env.CLIENT_URL}/reset-password/${token}`;
     
     const mailOptions = {
-        from: process.env.EMAIL_FROM || `"Food Delivery App" <${process.env.EMAIL_USER || "medaminekoubaa0@gmail.com"}>`,
+        from: process.env.EMAIL_FROM ,
         to: email,
         subject: 'Reset Your Password - Food Delivery App',
         html: `
@@ -95,7 +92,7 @@ export async function sendPasswordResetEmail(email, name, token) {
 // Send OTP email
 export async function sendOTPEmail(email, name, otpCode) {
     const mailOptions = {
-        from: process.env.EMAIL_FROM || `"Food Delivery App" <${process.env.EMAIL_USER || "medaminekoubaa0@gmail.com"}>`,
+        from: process.env.EMAIL_FROM ,
         to: email,
         subject: 'Your OTP Code - Food Delivery App',
         html: `
@@ -122,7 +119,7 @@ export async function sendOTPEmail(email, name, otpCode) {
 // Send welcome email
 export async function sendWelcomeEmail(email, name) {
     const mailOptions = {
-        from: process.env.EMAIL_FROM || `"Food Delivery App" <${process.env.EMAIL_USER || "medaminekoubaa0@gmail.com"}>`,
+        from: process.env.EMAIL_FROM ,
         to: email,
         subject: 'Welcome to Food Delivery App!',
         html: `
@@ -137,7 +134,7 @@ export async function sendWelcomeEmail(email, name) {
                     <li>Get exclusive offers and deals</li>
                 </ul>
                 <div style="text-align: center; margin: 30px 0;">
-                    <a href="${process.env.CLIENT_URL || 'http://localhost:3000'}" 
+                    <a href="${process.env.CLIENT_URL}" 
                        style="background-color: #FF6B35; color: white; padding: 12px 30px; 
                               text-decoration: none; border-radius: 5px; display: inline-block;">
                         Start Ordering
@@ -155,7 +152,7 @@ export async function sendWelcomeEmail(email, name) {
 // Send order confirmation email
 export async function sendOrderConfirmationEmail(email, name, orderId, orderDetails) {
     const mailOptions = {
-        from: process.env.EMAIL_FROM || `"Food Delivery App" <${process.env.EMAIL_USER || "medaminekoubaa0@gmail.com"}>`,
+        from: process.env.EMAIL_FROM ,
         to: email,
         subject: `Order Confirmation #${orderId} - Food Delivery App`,
         html: `
