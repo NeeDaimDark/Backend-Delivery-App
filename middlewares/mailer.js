@@ -21,7 +21,9 @@ if (process.env.NODE_ENV) {
 
 // Send verification email
 export async function sendVerificationEmail(email, name, token) {
-    const verificationUrl = `${process.env.CLIENT_URL}/verify-email/${token}`;
+    // Use backend URL for API verification endpoint
+    const backendUrl = process.env.BACKEND_URL || process.env.CLIENT_URL || 'https://backend-delivery-app-ynzy.onrender.com';
+    const verificationUrl = `${backendUrl}/api/auth/verify-email/${token}`;
 
     const sendSmtpEmail = new brevo.SendSmtpEmail();
     sendSmtpEmail.sender = {
@@ -62,7 +64,9 @@ export async function sendVerificationEmail(email, name, token) {
 
 // Send password reset email
 export async function sendPasswordResetEmail(email, name, token) {
-    const resetUrl = `${process.env.CLIENT_URL}/reset-password/${token}`;
+    // Use backend URL for API reset endpoint
+    const backendUrl = process.env.BACKEND_URL || process.env.CLIENT_URL || 'https://backend-delivery-app-ynzy.onrender.com';
+    const resetUrl = `${backendUrl}/api/auth/reset-password/${token}`;
 
     const sendSmtpEmail = new brevo.SendSmtpEmail();
     sendSmtpEmail.sender = {
