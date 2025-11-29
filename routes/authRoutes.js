@@ -5,6 +5,7 @@ import {
     verifyEmail,
     resendVerificationEmail,
     forgotPassword,
+    verifyResetToken,
     resetPassword,
     sendOTP,
     verifyOTP,
@@ -34,7 +35,8 @@ router.post('/resend-verification', resendVerificationEmail);
 
 // Password Reset
 router.post('/forgot-password', forgotPassword);
-router.post('/reset-password', resetPassword);
+router.get('/reset-password/:token', verifyResetToken);  // Verify token (for email link)
+router.post('/reset-password', resetPassword);           // Actually reset password
 
 // OTP Verification
 router.post('/send-otp', sendOTP);

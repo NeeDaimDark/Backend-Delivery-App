@@ -352,7 +352,55 @@ export async function forgotPassword(req, res) {
     }
 }
 
+// ==================== VERIFY RESET TOKEN ====================
+/**
+ * Verify password reset token (GET request from email link)
+ * This endpoint validates the token without resetting the password
+ * Used when user clicks the reset link in their email
+ */
+export async function verifyResetToken(req, res) {
+    try {
+        const { token } = req.params;
+
+        // Hash the token to compare with stored hash
+        const resetPasswordToken = crypto.createHash('sha256').update(token).digest('hex');
+
+        const customer = await Customer.findOne({
+            resetPasswordToken,
+            resetPasswordExpires: { $gt: Date.now() }
+        });
+
+        if (!customer) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid or expired reset token',
+                expired: true
+            });
+        }
+
+        // Token is valid
+        res.status(200).json({
+            success: true,
+            message: 'Reset token is valid. You can now reset your password.',
+            token: token,
+            email: customer.email
+        });
+
+    } catch (err) {
+        console.error('Verify reset token error:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: err.message
+        });
+    }
+}
+
 // ==================== RESET PASSWORD ====================
+/**
+ * Reset password with valid token and new password (POST request)
+ * This actually updates the password in the database
+ */
 export async function resetPassword(req, res) {
     try {
         const { error } = validatePasswordReset(req.body);
