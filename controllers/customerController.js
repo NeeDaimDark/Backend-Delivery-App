@@ -347,13 +347,14 @@ export async function uploadProfilePhoto(req, res) {
         const { _id } = req.user;
 
         if (!req.file) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 success: false,
-                message: 'No file uploaded' 
+                message: 'No file uploaded'
             });
         }
 
-        const profileImage = `/uploads/images/${req.file.filename}`;
+        // Cloudinary returns the secure URL in req.file.path
+        const profileImage = req.file.path; // This is the Cloudinary URL
 
         const customer = await Customer.findByIdAndUpdate(
             _id,
@@ -363,17 +364,17 @@ export async function uploadProfilePhoto(req, res) {
 
         res.status(200).json({
             success: true,
-            message: 'Profile photo uploaded successfully',
+            message: 'Profile photo uploaded successfully to Cloudinary',
             profileImage,
             customer
         });
 
     } catch (err) {
         console.error('Upload profile photo error:', err);
-        res.status(500).json({ 
+        res.status(500).json({
             success: false,
             message: 'Server error',
-            error: err.message 
+            error: err.message
         });
     }
 }
