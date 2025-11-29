@@ -77,7 +77,8 @@ export async function register(req, res) {
             phone,
             password: hashedPassword,
             language: language || 'en',
-            profileImage: req.file ? `/uploads/images/${req.file.filename}` : null,
+            // Cloudinary returns the secure URL in req.file.path
+            profileImage: req.file ? req.file.path : null,
             emailVerificationToken,
             emailVerificationExpires
         });

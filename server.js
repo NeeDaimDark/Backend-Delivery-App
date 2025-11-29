@@ -1,3 +1,15 @@
+/**
+ * Food Delivery API Server
+ * Main application entry point
+ *
+ * Features:
+ * - RESTful API for food delivery platform
+ * - JWT-based authentication
+ * - Image upload to Cloudinary
+ * - Email notifications via Brevo
+ * - MongoDB database integration
+ */
+
 import express from "express";
 import cors from "cors";
 import * as dotenv from "dotenv";
@@ -5,55 +17,39 @@ import { NotFoundError, errorHandler } from "./middlewares/error-handler.js";
 import morgan from "morgan";
 import connectDb from "./config/db.js";
 import bodyParser from "body-parser";
-import multer from 'multer';
 
 // Import Routes
 import authRoutes from './routes/authRoutes.js';
 import customerRoutes from './routes/customerRoutes.js';
 
+// Load environment variables
 dotenv.config();
 
 const app = express();
 
-// Use 0.0.0.0 for production (Render, Railway, etc.) or localhost for development
+// Server configuration
+// Use 0.0.0.0 for production hosting (Render, Railway, etc.) or localhost for local development
 const hostname = process.env.NODE_ENV === 'production' ? '0.0.0.0' : (process.env.DOCKERSERVERURL || '127.0.0.1');
 const port = process.env.PORT || process.env.SERVERPORT || 9090;
 
-// Info on req : GET /route ms -25
+// ==================== MIDDLEWARE CONFIGURATION ====================
+
+// HTTP request logger for development
 app.use(morgan("tiny"));
+
+// Enable CORS for all routes
 app.use(cors());
 
-// Database connection
+// Connect to MongoDB database
 connectDb();
 
-// Body parser
+// Body parser middleware - parse JSON and URL-encoded bodies
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-// Static folder setup
+// Serve static files (legacy - images now stored on Cloudinary)
 app.use("/media", express.static("media"));
 app.use('/uploads/images', express.static('uploads/images'));
-
-// Multer configuration
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, './uploads/images');
-    },
-    filename: (req, file, cb) => {
-        // Sanitize the filename
-        const sanitizedFilename = file.originalname.replace(/\s+/g, '_');
-        cb(null, sanitizedFilename);
-    }
-});
-
-const upload = multer({ storage: storage });
-
-app.post("/uploads", upload.single('upload'), (req, res) => {
-    res.json({
-        success: 1,
-        profilePic: `/uploads/images/${req.file.filename}` // Return the correct path
-    });
-});
 
 // ==================== API ROUTES ====================
 
