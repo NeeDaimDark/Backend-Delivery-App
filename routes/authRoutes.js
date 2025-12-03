@@ -5,7 +5,7 @@ import {
     verifyEmail,
     resendVerificationEmail,
     forgotPassword,
-    verifyResetToken,
+    verifyOTPForPasswordReset,
     resetPassword,
     sendOTP,
     verifyOTP,
@@ -33,10 +33,10 @@ router.post('/login', login);
 router.get('/verify-email/:token', verifyEmail);
 router.post('/resend-verification', resendVerificationEmail);
 
-// Password Reset
-router.post('/forgot-password', forgotPassword);
-router.get('/reset-password/:token', verifyResetToken);  // Verify token (for email link)
-router.post('/reset-password', resetPassword);           // Actually reset password
+// Password Reset with OTP Flow
+router.post('/forgot-password', forgotPassword);                    // Step 1: Send OTP
+router.post('/verify-otp-reset', verifyOTPForPasswordReset);       // Step 2: Verify OTP
+router.post('/reset-password', resetPassword);                      // Step 3: Reset password
 
 // OTP Verification
 router.post('/send-otp', sendOTP);

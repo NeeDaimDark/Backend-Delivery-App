@@ -1,427 +1,293 @@
-# Food Delivery Backend Application
+# Food Delivery Backend API
 
-A robust Node.js/Express backend API for a food delivery platform with comprehensive user management, authentication, and email notification features.
+A production-ready RESTful API for a food delivery platform built with Node.js, Express, and MongoDB.
 
-## Table of Contents
-- [Overview](#overview)
-- [Features](#features)
-- [Technology Stack](#technology-stack)
-- [Project Structure](#project-structure)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Running the Application](#running-the-application)
-- [API Documentation](#api-documentation)
-- [Database Schema](#database-schema)
-- [Security Features](#security-features)
-- [Docker Support](#docker-support)
+## 🚀 Features
 
----
+- **Authentication & Authorization**
+  - JWT-based authentication with access and refresh tokens
+  - Email verification system
+  - Password reset functionality
+  - OTP verification
+  - Secure password hashing with bcrypt
 
-## Overview
+- **Customer Management**
+  - User registration and login
+  - Profile management with image upload
+  - Multiple delivery addresses support
+  - Account activation/deactivation
 
-This is a complete backend solution for a food delivery application (Haven) that provides customer management, authentication, address handling, and email notifications. The application is built with modern Node.js technologies and follows REST API best practices.
+- **Cloud Services Integration**
+  - **Cloudinary**: Image storage and optimization
+  - **Brevo (SendinBlue)**: Transactional email delivery
+  - **MongoDB Atlas**: Cloud database hosting
 
-**Base URL:** `http://127.0.0.1:9090`
-**Database:** MongoDB - `food_delivery_DB`
-**Version:** 1.0.0
+- **Security Features**
+  - CORS enabled
+  - Environment-based configuration
+  - Secure token management
+  - Input validation with Joi
 
----
+## 🛠️ Tech Stack
 
-## Features
+- **Runtime**: Node.js (v22.16.0)
+- **Framework**: Express.js
+- **Database**: MongoDB with Mongoose ODM
+- **Authentication**: JWT (jsonwebtoken)
+- **File Upload**: Multer + Cloudinary
+- **Email Service**: Brevo API
+- **Validation**: Joi
+- **Password Hashing**: bcrypt
 
-### Authentication & Authorization
-- User registration with email verification
-- Secure login with JWT access and refresh tokens
-- Email/phone-based authentication
-- OTP verification system
-- Password reset via email
-- Token refresh mechanism
-- Secure logout
-
-### Customer Management
-- Complete profile management (CRUD operations)
-- Profile photo upload with custom naming
-- Multi-language support (English, French, Arabic, Spanish)
-- Notification preferences management
-- Account deactivation
-- Password change functionality
-
-### Address Management
-- Multiple addresses per customer
-- Address types: home, office, apartment, other
-- Geolocation support (latitude/longitude)
-- Default address selection
-- Full CRUD operations
-
-### Email Services
-- Professional HTML email templates
-- Email verification
-- Password reset emails
-- OTP delivery
-- Welcome emails
-- Order confirmation emails
-
-### Admin Features
-- Customer listing with pagination and filters
-- Search by name, email, or phone
-- Customer CRUD operations
-- Role-based access control
-
----
-
-## Technology Stack
-
-### Core
-- **Runtime:** Node.js (ES6 modules)
-- **Framework:** Express.js
-- **Database:** MongoDB with Mongoose ODM
-- **Authentication:** JWT (jsonwebtoken)
-- **Password Hashing:** bcrypt
-
-### Key Dependencies
-- **Email:** Nodemailer
-- **Validation:** Joi & express-validator
-- **File Upload:** Multer
-- **Environment:** dotenv
-- **Logging:** Morgan
-- **Real-time:** Socket.io
-- **CORS:** cors
-- **Development:** Nodemon
-
-### Additional Features
-- Solana Web3 integration
-- Blockchain capabilities
-- RESTful API architecture
-
----
-
-## Project Structure
+## 📁 Project Structure
 
 ```
 Backend_Delivery_app/
 ├── config/
-│   └── db.js                 # MongoDB connection
+│   └── db.js                 # Database connection configuration
 ├── controllers/
 │   ├── authController.js     # Authentication logic
 │   └── customerController.js # Customer management logic
-├── models/
-│   └── Customer.js          # Customer schema & validations
-├── routes/
-│   ├── authRoutes.js        # Authentication routes
-│   └── customerRoutes.js    # Customer routes
 ├── middlewares/
 │   ├── auth.js              # JWT authentication middleware
-│   ├── error-handler.js     # Error handling middleware
-│   ├── mailer.js            # Email service
-│   ├── multer-config.js     # File upload configuration
-│   ├── storage.js           # Image storage
-│   └── storage-videos.js    # Video storage
-├── uploads/
-│   └── images/              # Uploaded profile images
-├── media/                   # Static media files
-├── .env                     # Environment variables
+│   ├── error-handler.js     # Global error handling
+│   ├── mailer.js            # Email service (Brevo)
+│   └── multer-config.js     # File upload configuration (Cloudinary)
+├── models/
+│   └── Customer.js          # Customer data model with validations
+├── routes/
+│   ├── authRoutes.js        # Authentication endpoints
+│   └── customerRoutes.js    # Customer management endpoints
+├── .env                     # Environment variables (not in git)
+├── .env.example             # Environment variables template
 ├── server.js                # Application entry point
-├── createAdmin.js           # Admin user creation script
-├── package.json             # Dependencies
-├── Dockerfile               # Docker configuration
-└── docker-compose.yml       # Docker Compose setup
+└── package.json             # Dependencies and scripts
 ```
 
----
-
-## Installation
+## 🚦 Getting Started
 
 ### Prerequisites
-- Node.js (v14 or higher)
-- MongoDB (v4.4 or higher)
+
+- Node.js >= 16.x
+- MongoDB (local or Atlas)
 - npm or yarn
 
-### Steps
+### Installation
 
 1. **Clone the repository**
-```bash
-git clone <repository-url>
-cd Backend_Delivery_app
-```
+   ```bash
+   git clone https://github.com/NeeDaimDark/Backend-Delivery-App.git
+   cd Backend-Delivery-App
+   ```
 
 2. **Install dependencies**
-```bash
-npm install
-```
+   ```bash
+   npm install
+   ```
 
 3. **Set up environment variables**
-Create a `.env` file in the root directory:
-```env
-# Server Configuration
-SERVERPORT=9090
-DOCKERSERVERURL=127.0.0.1
+   ```bash
+   cp .env.example .env
+   ```
 
-# Database
-MONGO_URI=mongodb://127.0.0.1:27017/food_delivery_DB
+   Edit `.env` and add your credentials:
+   ```env
+   # Database
+   MONGODB_URI=your_mongodb_connection_string
 
-# JWT
-JWT_SECRET=your_jwt_secret_key_here
-JWT_REFRESH_SECRET=your_refresh_secret_key_here
+   # JWT Secrets
+   JWT_SECRET=your_jwt_secret
+   JWT_REFRESH_SECRET=your_refresh_secret
 
-# Email Configuration (Gmail)
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USER=your_email@gmail.com
-EMAIL_PASSWORD=your_app_password
-EMAIL_FROM="Food Delivery App <your_email@gmail.com>"
+   # Cloudinary (Image Storage)
+   CLOUDINARY_CLOUD_NAME=your_cloud_name
+   CLOUDINARY_API_KEY=your_api_key
+   CLOUDINARY_API_SECRET=your_api_secret
 
-# Client URL
-CLIENT_URL=http://localhost:3000
+   # Brevo (Email Service)
+   BREVO_API_KEY=your_brevo_api_key
+   EMAIL_USER=your_verified_email@gmail.com
 
-# Upload Path
-IMGURL=/uploads/images
-```
+   # URLs
+   BACKEND_URL=http://localhost:9090
+   CLIENT_URL=http://localhost:3000
+   ```
 
-4. **Start MongoDB**
-```bash
-# Local MongoDB
-mongod
+4. **Start the server**
+   ```bash
+   # Development mode (with auto-reload)
+   npm run dev
 
-# Or use MongoDB Atlas connection string in .env
-```
+   # Production mode
+   npm start
+   ```
 
----
+5. **Server will be running at**: `http://localhost:9090`
 
-## Configuration
+## 🌐 API Endpoints
 
-### Email Setup (Gmail)
-1. Enable 2-factor authentication on your Gmail account
-2. Generate an App Password:
-   - Go to Google Account Settings
-   - Security → 2-Step Verification → App passwords
-   - Generate a new app password
-3. Use this app password in `EMAIL_PASSWORD`
+### Base URL
+- **Development**: `http://localhost:9090`
+- **Production**: `https://backend-delivery-app-ynzy.onrender.com`
 
-### File Upload
-- Supported formats: PNG, JPG, JPEG
-- Max file size: 5MB
-- Files are renamed: `username_timestamp.extension`
-- Storage path: `/uploads/images/`
+### Authentication Routes (`/api/auth`)
 
----
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/register` | Register new user | No |
+| POST | `/login` | User login | No |
+| GET | `/verify-email/:token` | Verify email address | No |
+| POST | `/forgot-password` | Request password reset | No |
+| GET | `/reset-password/:token` | Verify reset token | No |
+| POST | `/reset-password` | Reset password | No |
+| POST | `/refresh-token` | Get new access token | No |
+| POST | `/logout` | User logout | Yes |
 
-## Running the Application
+### Customer Routes (`/api/customers`)
 
-### Development Mode
-```bash
-npm run dev
-```
-Uses nodemon for auto-restart on file changes.
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/profile` | Get user profile | Yes |
+| PUT | `/profile` | Update profile | Yes |
+| POST | `/profile/upload-photo` | Upload profile photo | Yes |
+| GET | `/addresses` | Get all addresses | Yes |
+| POST | `/addresses` | Add new address | Yes |
+| PUT | `/addresses/:id` | Update address | Yes |
+| DELETE | `/addresses/:id` | Delete address | Yes |
+| POST | `/deactivate` | Deactivate account | Yes |
+| DELETE | `/delete` | Delete account permanently | Yes |
 
-### Production Mode
-```bash
-npm start
-```
+For detailed API documentation, see [FLUTTER_INTEGRATION.md](./FLUTTER_INTEGRATION.md)
 
-### Create Admin User
-```bash
-node createAdmin.js
-```
-Creates admin user:
-- Email: `admin@fooddelivery.com`
-- Password: `Admin1234*`
+## 🔐 Environment Variables
 
-### Docker
-```bash
-# Build and run
-docker-compose up -d
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `MONGODB_URI` | MongoDB connection string | Yes |
+| `JWT_SECRET` | JWT signing secret | Yes |
+| `JWT_REFRESH_SECRET` | Refresh token secret | Yes |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name | Yes |
+| `CLOUDINARY_API_KEY` | Cloudinary API key | Yes |
+| `CLOUDINARY_API_SECRET` | Cloudinary API secret | Yes |
+| `BREVO_API_KEY` | Brevo email API key | Yes |
+| `EMAIL_USER` | Sender email address | Yes |
+| `BACKEND_URL` | Backend API URL | Yes |
+| `NODE_ENV` | Environment (development/production) | No |
+| `PORT` | Server port (default: 9090) | No |
 
-# Stop
-docker-compose down
-```
+## 📧 Email Service Setup
 
----
+This API uses **Brevo** (formerly SendinBlue) for email delivery.
 
-## API Documentation
+### Why Brevo?
+- ✅ Free tier: 300 emails/day
+- ✅ Works on all hosting platforms (no SMTP port blocking)
+- ✅ No domain verification required
+- ✅ Easy HTTP API integration
 
-Full API documentation is available in [API_ROUTES.md](API_ROUTES.md)
+### Setup Steps:
+1. Sign up at [Brevo](https://app.brevo.com/account/register)
+2. Verify your email
+3. Go to SMTP & API → API Keys
+4. Create new API key
+5. Add to `.env` as `BREVO_API_KEY`
 
-### Quick Reference
+## ☁️ Cloudinary Setup
 
-**Health Check:**
-```
-GET /api/health
-```
+Images are stored on Cloudinary cloud storage.
 
-**Authentication:**
-```
+### Setup Steps:
+1. Sign up at [Cloudinary](https://cloudinary.com/users/register_free)
+2. Get credentials from Dashboard
+3. Add to `.env`:
+   - `CLOUDINARY_CLOUD_NAME`
+   - `CLOUDINARY_API_KEY`
+   - `CLOUDINARY_API_SECRET`
+
+## 🚀 Deployment
+
+### Deploy to Render
+
+1. **Push to GitHub**
+   ```bash
+   git push origin main
+   ```
+
+2. **Create Render Service**
+   - Go to [Render Dashboard](https://dashboard.render.com)
+   - Click "New +" → "Web Service"
+   - Connect your GitHub repository
+   - Configure:
+     - **Build Command**: `npm install`
+     - **Start Command**: `npm start`
+     - **Environment**: Add all env variables
+
+3. **Add Environment Variables**
+   - Copy all variables from `.env`
+   - Add to Render environment tab
+   - Set `NODE_ENV=production`
+
+4. **Deploy!**
+   - Render will auto-deploy on every git push
+
+## 🧪 Testing
+
+Use Postman or any API client to test endpoints.
+
+### Example: Register User
+```http
 POST /api/auth/register
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "phone": "+1234567890",
+  "password": "SecurePass123!",
+  "language": "en"
+}
+```
+
+### Example: Login
+```http
 POST /api/auth/login
-GET  /api/auth/verify-email/:token
-POST /api/auth/forgot-password
-```
+Content-Type: application/json
 
-**Customer Profile:**
-```
-GET  /api/customers/profile
-PUT  /api/customers/profile
-POST /api/customers/profile/upload-photo
-POST /api/customers/profile/change-password
-```
-
-**Address Management:**
-```
-GET    /api/customers/addresses
-POST   /api/customers/addresses
-PUT    /api/customers/addresses/:id
-DELETE /api/customers/addresses/:id
-```
-
----
-
-## Database Schema
-
-### Customer Model
-
-```javascript
 {
-  name: String (required),
-  email: String (required, unique),
-  phone: String (required, unique),
-  password: String (required, hashed),
-  profileImage: String,
-  addresses: [AddressSchema],
-  defaultAddressId: ObjectId,
-  language: String (en|fr|ar|es),
-  isVerified: Boolean,
-  isActive: Boolean,
-  role: String (customer|admin),
-  notificationPreferences: {
-    pushNotifications: Boolean,
-    emailNotifications: Boolean,
-    smsNotifications: Boolean,
-    orderUpdates: Boolean,
-    promotions: Boolean
-  },
-  totalOrders: Number,
-  totalSpent: Number,
-  lastLogin: Date,
-  createdAt: Date,
-  updatedAt: Date
+  "email": "john@example.com",
+  "password": "SecurePass123!"
 }
 ```
 
-### Address Schema
-
-```javascript
-{
-  type: String (home|office|apartment|other),
-  label: String,
-  street: String,
-  building: String,
-  floor: String,
-  apartment: String,
-  city: String,
-  latitude: Number,
-  longitude: Number,
-  isDefault: Boolean
-}
+### Example: Protected Route
+```http
+GET /api/customers/profile
+Authorization: Bearer YOUR_JWT_TOKEN
 ```
 
----
+## 📱 Flutter Integration
 
-## Security Features
+For complete Flutter integration guide with code examples, see:
+**[FLUTTER_INTEGRATION.md](./FLUTTER_INTEGRATION.md)**
 
-- **Password Security:** bcrypt hashing with salt rounds
-- **JWT Authentication:** Access tokens (7 days) & Refresh tokens (30 days)
-- **Token Verification:** Middleware-based route protection
-- **Role-Based Access:** Admin and customer roles
-- **Email Verification:** Required for account activation
-- **OTP Verification:** Time-limited 6-digit codes (10 min expiry)
-- **Password Reset:** Secure token-based reset (1 hour expiry)
-- **Input Validation:** Joi schema validation
-- **CORS:** Configured for cross-origin requests
-- **Environment Variables:** Sensitive data protection
-
----
-
-## Docker Support
-
-### Build Image
-```bash
-docker build -t food-delivery-api .
-```
-
-### Run Container
-```bash
-docker run -p 9090:9090 --env-file .env food-delivery-api
-```
-
-### Using Docker Compose
-```bash
-# Start all services
-docker-compose up -d
-
-# View logs
-docker-compose logs -f
-
-# Stop services
-docker-compose down
-```
-
----
-
-## Environment Variables Reference
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `SERVERPORT` | Server port | 9090 |
-| `DOCKERSERVERURL` | Server host | 127.0.0.1 |
-| `MONGO_URI` | MongoDB connection string | mongodb://127.0.0.1:27017/food_delivery_DB |
-| `JWT_SECRET` | JWT secret key | privateKey |
-| `JWT_REFRESH_SECRET` | Refresh token secret | - |
-| `EMAIL_HOST` | SMTP host | smtp.gmail.com |
-| `EMAIL_PORT` | SMTP port | 587 |
-| `EMAIL_USER` | Email username | - |
-| `EMAIL_PASSWORD` | Email password | - |
-| `EMAIL_FROM` | Email sender | - |
-| `CLIENT_URL` | Frontend URL | http://localhost:3000 |
-| `IMGURL` | Image upload path | /uploads/images |
-
----
-
-## Testing
-
-Use Postman or any API client to test endpoints. Import the base URL and follow the API documentation.
-
-**Recommended Testing Order:**
-1. Health check
-2. Register user
-3. Verify email
-4. Login
-5. Get profile (requires auth)
-6. Update profile
-7. Add address
-8. Upload photo
-
----
-
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
+
+## 📄 License
+
+ISC License
+
+## 👨‍💻 Author
+
+**Backend API** - Food Delivery Platform
 
 ---
 
-## License
+**Live API**: https://backend-delivery-app-ynzy.onrender.com
 
-ISC
-
----
-
-## Support
-
-For issues or questions, please create an issue in the repository.
-
----
-
-**Last Updated:** November 27, 2025
-**Maintained by:** Food Delivery App Team
+**Repository**: https://github.com/NeeDaimDark/Backend-Delivery-App

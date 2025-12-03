@@ -305,6 +305,10 @@ export async function resendVerificationEmail(req, res) {
 }
 
 // ==================== FORGOT PASSWORD ====================
+/**
+ * Forgot Password - Step 1: Generate and send OTP
+ * User enters email, backend sends OTP code to email
+ */
 export async function forgotPassword(req, res) {
     try {
         const { error } = validateEmail(req.body);
@@ -325,21 +329,22 @@ export async function forgotPassword(req, res) {
             });
         }
 
-        // Generate reset token
-        const resetToken = crypto.randomBytes(32).toString('hex');
-        const resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-        const resetPasswordExpires = Date.now() + 60 * 60 * 1000; // 1 hour
+        // Generate OTP (6-digit code)
+        const otpCode = generateOTP();
+        const otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
 
-        customer.resetPasswordToken = resetPasswordToken;
-        customer.resetPasswordExpires = resetPasswordExpires;
+        // Mark this OTP for password reset
+        customer.otpCode = otpCode;
+        customer.otpExpires = otpExpires;
         await customer.save();
 
-        // Send reset email
-        await sendPasswordResetEmail(email, customer.name, resetToken);
+        // Send OTP via email
+        await sendOTPEmail(email, customer.name, otpCode);
 
         res.status(200).json({
             success: true,
-            message: 'Password reset email sent successfully'
+            message: 'OTP sent to your email. Check your inbox for the verification code.',
+            email: email // Return email for verification in next step
         });
 
     } catch (err) {
@@ -352,42 +357,58 @@ export async function forgotPassword(req, res) {
     }
 }
 
-// ==================== VERIFY RESET TOKEN ====================
+// ==================== VERIFY OTP FOR PASSWORD RESET ====================
 /**
- * Verify password reset token (GET request from email link)
- * This endpoint validates the token without resetting the password
- * Used when user clicks the reset link in their email
+ * Verify OTP for password reset - Step 2
+ * User enters OTP code received in email
+ * Returns reset token to allow user to proceed to password reset
  */
-export async function verifyResetToken(req, res) {
+export async function verifyOTPForPasswordReset(req, res) {
     try {
-        const { token } = req.params;
+        const { email, otpCode } = req.body;
 
-        // Hash the token to compare with stored hash
-        const resetPasswordToken = crypto.createHash('sha256').update(token).digest('hex');
+        if (!email || !otpCode) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email and OTP are required'
+            });
+        }
 
         const customer = await Customer.findOne({
-            resetPasswordToken,
-            resetPasswordExpires: { $gt: Date.now() }
+            email,
+            otpCode,
+            otpExpires: { $gt: Date.now() }
         });
 
         if (!customer) {
             return res.status(400).json({
                 success: false,
-                message: 'Invalid or expired reset token',
-                expired: true
+                message: 'Invalid or expired OTP'
             });
         }
 
-        // Token is valid
+        // Generate a temporary reset token (valid for 15 minutes)
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+        const resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 minutes
+
+        // Save temporary reset token
+        customer.resetPasswordToken = resetPasswordToken;
+        customer.resetPasswordExpires = resetPasswordExpires;
+        // Clear OTP after verification
+        customer.otpCode = undefined;
+        customer.otpExpires = undefined;
+        await customer.save();
+
         res.status(200).json({
             success: true,
-            message: 'Reset token is valid. You can now reset your password.',
-            token: token,
-            email: customer.email
+            message: 'OTP verified successfully. You can now reset your password.',
+            resetToken: resetToken,
+            email: email
         });
 
     } catch (err) {
-        console.error('Verify reset token error:', err);
+        console.error('Verify OTP for password reset error:', err);
         res.status(500).json({
             success: false,
             message: 'Server error',
@@ -398,8 +419,9 @@ export async function verifyResetToken(req, res) {
 
 // ==================== RESET PASSWORD ====================
 /**
- * Reset password with valid token and new password (POST request)
- * This actually updates the password in the database
+ * Reset password - Step 3: Confirm new password
+ * After OTP verification, user submits new password with temporary reset token
+ * This updates the password in the database
  */
 export async function resetPassword(req, res) {
     try {
@@ -424,13 +446,14 @@ export async function resetPassword(req, res) {
         if (!customer) {
             return res.status(400).json({ 
                 success: false,
-                message: 'Invalid or expired reset token' 
+                message: 'Invalid or expired reset token. Please start password reset again.' 
             });
         }
 
-        // Hash new password
+        // Hash new password with bcrypt
         const hashedPassword = await bcrypt.hash(newPassword, 10);
 
+        // Update password and clear reset token
         customer.password = hashedPassword;
         customer.resetPasswordToken = undefined;
         customer.resetPasswordExpires = undefined;
@@ -438,7 +461,7 @@ export async function resetPassword(req, res) {
 
         res.status(200).json({
             success: true,
-            message: 'Password reset successful'
+            message: 'Password reset successfully! You can now login with your new password.'
         });
 
     } catch (err) {
